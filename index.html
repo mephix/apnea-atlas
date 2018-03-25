@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Atlas tester</title>
+</head>
+<body>
+
+    <h3>Atlas tester</h3>
+    <p>Atlas received message:</p>
+    <div id="results"></div>
+    <p>Send data to atlas: <button id="message_button">Send</button></p>
+    <br/>
+    <script src='js/createIcon.js'></script>
+    <script src='js/createInfoDisplay.js'></script>
+    <script>
+        var messageButton = document.getElementById('message_button');
+		var results = document.getElementById('results');
+
+        // Create the atlas iframe
+        var iframeSource = 'atlas.html';
+        var iframe = document.createElement('iframe');
+        iframe.setAttribute('src', iframeSource);
+        iframe.setAttribute('id', 'atlas_iframe');
+        iframe.style.width = 200 + 'px';
+        iframe.style.height = 200 + 'px';
+        document.body.appendChild(iframe);
+		var atlasElement = document.getElementById('atlas_iframe').contentWindow;
+        
+        // create the data
+        var mapData = {
+          googleKey: 'AIzaSyCRLnmaReDL6IFS7YRrfGmHjKvYtZw60Fg',
+          navionicsKey: 'Navionics_webapi_03362',
+          atlasType: 'show divesite', //'atlas',
+          markers: [],
+        };
+
+        // randomness options
+        var names = ['my muff','cenote','hello','happy place','ibiza'];
+        var types = ['site','parking','pool','school','trip','event'];
+        var compTypes = ['depth competition','pool competition',
+                         'mixed competition','judge course','workshop/camp'];            
+        // Add a new random marker to the mapData on every button click
+		messageButton.addEventListener('click',
+			function (e) {
+				var lat = (Math.random()-0.5)*120;
+				var lng = (Math.random()-0.5)*360;
+				var name = names[Math.floor(Math.random()*names.length)];
+				var type = types[Math.floor(Math.random()*types.length)];
+                var compType = (type==='event') ?
+                  compTypes[Math.floor(Math.random()*compTypes.length)] :
+                  '';
+				// need name, lat, lng, icon, info
+				randomMarker = {name,lat,lng,type,compType};
+				[randomMarker.icon,randomMarker.iconSpiderfiable] = 
+				  createIcon(randomMarker);
+                randomMarker.info = createInfoDisplay(randomMarker);
+				mapData.markers.push(randomMarker);
+				atlasElement.postMessage(JSON.stringify(mapData), '*');
+        	}
+		)
+
+		// receive and display messages from the map
+        window.addEventListener('message',
+          (e) => {results.innerHTML = JSON.stringify(e.data)});
+        
+    </script>
+</body>
+</html>
