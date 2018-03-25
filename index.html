@@ -31,7 +31,8 @@
         var mapData = {
           googleKey: 'AIzaSyCRLnmaReDL6IFS7YRrfGmHjKvYtZw60Fg',
           navionicsKey: 'Navionics_webapi_03362',
-          atlasType: 'show divesite', //'atlas',
+          atlasType: 'add divesite parking',
+          // 'show place','show divesite', 'atlas',
           markers: [],
         };
 
@@ -55,7 +56,10 @@
 				[randomMarker.icon,randomMarker.iconSpiderfiable] = 
 				  createIcon(randomMarker);
                 randomMarker.info = createInfoDisplay(randomMarker);
-				mapData.markers.push(randomMarker);
+                // for +Add testing, replace marker instead of adding it
+                mapData.center = randomMarker;
+                // mapData.markers = [randomMarker];
+				// mapData.markers.push(randomMarker);
 				atlasElement.postMessage(JSON.stringify(mapData), '*');
         	}
 		)
