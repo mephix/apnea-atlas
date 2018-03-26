@@ -14,6 +14,11 @@
     <script src='js/createIcon.js'></script>
     <script src='js/createInfoDisplay.js'></script>
     <script>
+
+        const ATLAS_TYPE = 'add divesite';
+          // 'show place','show divesite', 'atlas',
+          // 'add divesite','add divesite parking','add place'
+
         var messageButton = document.getElementById('message_button');
 		var results = document.getElementById('results');
 
@@ -31,8 +36,7 @@
         var mapData = {
           googleKey: 'AIzaSyCRLnmaReDL6IFS7YRrfGmHjKvYtZw60Fg',
           navionicsKey: 'Navionics_webapi_03362',
-          atlasType: 'add divesite parking',
-          // 'show place','show divesite', 'atlas',
+          atlasType: ATLAS_TYPE,
           markers: [],
         };
 
@@ -56,10 +60,15 @@
 				[randomMarker.icon,randomMarker.iconSpiderfiable] = 
 				  createIcon(randomMarker);
                 randomMarker.info = createInfoDisplay(randomMarker);
-                // for +Add testing, replace marker instead of adding it
-                mapData.center = randomMarker;
-                // mapData.markers = [randomMarker];
-				// mapData.markers.push(randomMarker);
+                
+                // TYPES OF TESTING
+                // test input mode ('add divesite','add divesite parking','add place')
+                mapData.center = randomMarker;     // 'add divesite parking'
+                // mapData.markers = [randomMarker];  // 'add divesite' 
+                // test display mode ('atlas','show divesite','show place')
+				// mapData.markers.push(randomMarker); // 'atlas'
+                // mapData.markers = [randomMarker];  // 'show divesite','show place'
+
 				atlasElement.postMessage(JSON.stringify(mapData), '*');
         	}
 		)
