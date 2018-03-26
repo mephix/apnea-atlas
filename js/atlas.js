@@ -2,6 +2,8 @@ console.log('started loading atlas.js script');
 
 // variables with global scope
 var data, atlasParams, map, oms, infoWindow, autocomplete
+const DEFAULT_ZOOM = 0;
+const DEFAULT_CENTER = {lat: 0, lng: 24};
 
 // cms records whether callback messages have been received 
 var cms = {}
@@ -37,7 +39,8 @@ window.addEventListener('message',
        */
       data = JSON.parse(event.data);
 
-      if (initialLoad) {
+      // data.initialLoad is a debugging option
+      if (initialLoad || data.initialLoad) {
         // set the parameters for the atlas based on its type
         if (!data.atlasType) throw('wix must supply an atlas type');
         atlasParams = setAtlasParams({atlasType: data.atlasType});
@@ -46,8 +49,8 @@ window.addEventListener('message',
       }
 
       // [callback]
-      // unless its a display map but no markers have been received yet
-      if (atlasParams.atlasType==='input' || data.center || data.markers) {
+      // if its an input map or markers or a center have been sent
+      if (atlasParams.mode==='input' || data.center || data.markers) {
         centerAndAddMarkers({callbackMessage: 'data ready'});
       }
 	}
@@ -76,6 +79,7 @@ function centerAndAddMarkers ({callbackMessage}) {
   // for a place
   if (atlasParams.mode === 'input') {
     data.markers = [{
+      name: 'drag me!',
       lat: map.center.lat(),
       lng: map.center.lng(),
     }]
@@ -90,9 +94,9 @@ function addMarkers() {
   var bounds = new google.maps.LatLngBounds();
 
   for (let i = 0; i < data.markers.length; i++) {
-  // using 'let' with i is important for async
 
     // create new marker
+    // using 'let' with i is important for async
     let marker = new google.maps.Marker({
         title: data.markers[i].name,
     });
@@ -124,6 +128,7 @@ function addMarkers() {
     
     if (atlasParams.mode === 'input') {
       // in input mode, listen to where the marker is dragged
+      // when it is dragged, recenter the map but dont zoom (let user do manually)
       marker.setDraggable(true);
       google.maps.event.addListener(marker, 'dragend', function(e) {
         window.parent.postMessage([e.latLng.lat(),e.latLng.lng()], "*");
@@ -138,10 +143,11 @@ function addMarkers() {
           return;
         }
 
+        // when a place is selected, center and zoom map on the place
         if (place.geometry.viewport) {
           map.fitBounds(place.geometry.viewport);
         } else {
-          map.setCenter(place.geometry.location);
+          map.setCenter({'lat': data.markers[i].lat, 'lng': data.markers[i].lng});
           map.setZoom(14);
         }
 
@@ -162,22 +168,25 @@ function addMarkers() {
       });
     }
 
-    // add marker to markerSpiderifier and therefore the map
-    oms.addMarker(marker);
-
     // add marker to the map's bounds
     bounds.extend(marker.getPosition());
+
+    // add marker to markerSpiderifier and therefore the map
+    oms.addMarker(marker);
   }
 
-  // if zoom is specified, such as for 'add divesite' (dont zoom in on the marker)
-  // or 'add divesite parking' (do zoom in on the marker), set the zoom, otherwise fit the
-  // map around the markers displayed
-  if (atlasParams.zoom) {
+  // fit the map to the markers that have been displayed
+  // remember fitBounds happens asynchronously so setting zoom afterwards doesnt work
+  // remember atlasParams.zoom can exist and be 0
+  if (atlasParams.zoom || atlasParams.zoom===0) {
     map.setZoom(atlasParams.zoom);
+    // !! is there a cleaner way to do this? !!
+    map.setCenter({'lat': data.markers[0].lat, 'lng': data.markers[0].lng});
+
   } else {
-    // fit the map to the markers
     map.fitBounds(bounds);  
   }
+
 }
 
 function initializeMap({callbackMessage}) {
@@ -187,11 +196,11 @@ function initializeMap({callbackMessage}) {
 
   var mapOptions = {
     mapTypeId: atlasParams.maptype,
-    zoom: atlasParams.zoom,
-    center: atlasParams.center,
+    zoom: DEFAULT_ZOOM,
+    center: DEFAULT_CENTER,
     gestureHandling: 'cooperative',
     zoomControl: true,
-    mapTypeControl: true,
+    mapTypeControl: false, //true,
     fullscreenControl: true,
     scaleControl: false,
     streetViewControl: false,
@@ -203,9 +212,14 @@ function initializeMap({callbackMessage}) {
 
   // initialize the input window
   var input = document.getElementById('pac-input');
-  autocomplete = new google.maps.places.Autocomplete(input);
-  autocomplete.bindTo('bounds', map);
-  map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
+  if (atlasParams.mode === 'input') {
+    autocomplete = new google.maps.places.Autocomplete(input);
+    autocomplete.bindTo('bounds', map);
+    // !! USUALLY TOP+LEFT !!
+    map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
+  } else {
+    input.style.display = "none"; 
+  }
 
   // initialize a single infoWindow
   // re-using this window ensures only one will be open at a time
@@ -296,50 +310,50 @@ function loadAtlasStylesheet({src}) {
 
 function setAtlasParams({atlasType}) {
   atlasParams = {};
-  const DEFAULT_ZOOM = 2.15;
-  const DEFAULT_CENTER = {lat: 0, lng: 24};
-  atlasParams.center = DEFAULT_CENTER;
+
   switch (atlasType) {
     case 'atlas':
-      atlasParams.maptype = 'satellite';
-      //atlasParams.zoom = DEFAULT_ZOOM;
-      atlasParams.navionics = false;
       atlasParams.mode = 'display';
+      atlasParams.maptype = 'satellite';
+      atlasParams.center = DEFAULT_CENTER;
+      atlasParams.navionics = false;
       break;
 
     case 'show divesite':
-      atlasParams.maptype = 'satellite';
-      //atlasParams.zoom = 13;
-      atlasParams.navionics = true;
       atlasParams.mode = 'display';
+      atlasParams.maptype = 'satellite';
+      atlasParams.zoom = 14;
+      atlasParams.navionics = true;
       break;
 
     case 'show place':
-      atlasParams.maptype = 'roadmap';
-      //atlasParams.zoom = 13;
-      atlasParams.navionics = false;
       atlasParams.mode = 'display';
-      break;
-
-    case 'add place':
-      atlasParams.maptype = 'roadmap';
-      atlasParams.zoom = DEFAULT_ZOOM;
-      atlasParams.navionics = false;
-      atlasParams.mode = 'input';
-      break;
-
-    case 'add divesite':
-      atlasParams.maptype = 'satellite';
-      atlasParams.zoom = DEFAULT_ZOOM;
-      atlasParams.navionics = true;
-      atlasParams.mode = 'input';
-      break;
-
-    case 'add divesite parking':
       atlasParams.maptype = 'roadmap';
       atlasParams.zoom = 14;
       atlasParams.navionics = false;
+      break;
+
+    case 'add place':
       atlasParams.mode = 'input';
+      atlasParams.maptype = 'roadmap';
+      atlasParams.zoom = DEFAULT_ZOOM;
+      atlasParams.center = DEFAULT_CENTER;
+      atlasParams.navionics = false;
+      break;
+
+    case 'add divesite':
+      atlasParams.mode = 'input';
+      atlasParams.maptype = 'satellite';
+      atlasParams.zoom = DEFAULT_ZOOM;
+      atlasParams.center = DEFAULT_CENTER;
+      atlasParams.navionics = true;
+      break;
+
+    case 'add divesite parking':
+      atlasParams.mode = 'input';
+      atlasParams.maptype = 'roadmap';
+      atlasParams.zoom = 14;
+      atlasParams.navionics = false;
       break;
 
       default:

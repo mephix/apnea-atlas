@@ -15,7 +15,7 @@
     <script src='js/createInfoDisplay.js'></script>
     <script>
 
-        const ATLAS_TYPE = 'add divesite';
+        const ATLAS_TYPE = 'atlas';
           // 'show place','show divesite', 'atlas',
           // 'add divesite','add divesite parking','add place'
 
@@ -39,7 +39,8 @@
           atlasType: ATLAS_TYPE,
         };
 
-		// receive and display messages from the map
+        // when the atlas is ready, send it the initialization data
+		// + receive messages from the atlas
         window.addEventListener('message',
           (e) => {
             results.innerHTML = JSON.stringify(e.data)
@@ -48,15 +49,17 @@
             }
           });
         
-        // Add a new random marker to the mapData on every button click
+        // simulate sending data to the atlas
 		messageButton.addEventListener('click',
           function (e) {
             updateMapData({atlasType: mapData.atlasType});
+            //mapData.initialLoad = true;
             atlasElement.postMessage(JSON.stringify(mapData), '*');
           }
 		)
 
 		function updateMapData({atlasType}) {
+
           // randomness options
           var names = ['my muff','cenote','hello','happy place','ibiza'];
           var types = ['site','parking','pool','school','trip','event'];
@@ -67,23 +70,27 @@
           var lng = (Math.random()-0.5)*360;
           var name = names[Math.floor(Math.random()*names.length)];
           var type = types[Math.floor(Math.random()*types.length)];
-          var compType = (type==='event') ?
-            compTypes[Math.floor(Math.random()*compTypes.length)] :
-            '';
+          let cr = Math.floor(Math.random()*compTypes.length);
+          var compType = (type==='event') ? compTypes[cr] : '';
+
           // need name, lat, lng, icon, info
           randomMarker = {name,lat,lng,type,compType};
           [randomMarker.icon,randomMarker.iconSpiderfiable] = 
             createIcon(randomMarker);
           randomMarker.info = createInfoDisplay(randomMarker);
 
-          // TYPES OF TESTING
-          // test input mode ('add divesite','add divesite parking','add place')
-          mapData.center = randomMarker;     // 'add divesite parking'
-          // mapData.markers = [randomMarker];  // 'add divesite' 
-          // test display mode ('atlas','show divesite','show place')
-          // if (mapData.markers) {mapData.markers.push(randomMarker);} 
-          // else {mapData.markers = [randomMarker];} // 'atlas'
-          // mapData.markers = [randomMarker];  // 'show divesite','show place'		  
+          // test the different types of atlas
+          if (!mapData.markers) mapData.markers = [];
+          switch (atlasType) {
+            case 'atlas':
+              mapData.markers.push(randomMarker);
+              break;
+            case 'add divesite parking':
+              mapData.center =  randomMarker;
+              break;
+            default:
+              mapData.markers = [randomMarker];
+          }
 		}
 
     </script>
