@@ -140,6 +140,7 @@ function addMarkers() {
         var address = null;
         var lat = e.latLng.lat();
         var lng = e.latLng.lng();
+console.log('posting location data to wix of ' + JSON.stringify([placeId, address, lat, lng]))
         window.parent.postMessage([placeId, address, lat, lng], "*");
       });
 
@@ -170,6 +171,7 @@ function addMarkers() {
         var address = place.formatted_address;
         var lat = place.geometry.location.lat();
         var lng = place.geometry.location.lng();
+console.log('posting location data to wix of ' + JSON.stringify([placeId, address, lat, lng]))
         window.parent.postMessage([placeId, address, lat, lng], "*");
       });
     }
