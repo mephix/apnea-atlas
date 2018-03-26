@@ -136,12 +136,13 @@ function addMarkers() {
 
         // post the location to wix
         // this is just coordinates so there is no placeId or address
+        var name = null;
         var placeId = null;
         var address = null;
         var lat = e.latLng.lat();
         var lng = e.latLng.lng();
-console.log('posting location data to wix of ' + JSON.stringify([placeId, address, lat, lng]))
-        window.parent.postMessage([placeId, address, lat, lng], "*");
+console.log('posting location data to wix of ' + JSON.stringify([placeId, address, lat, lng, name]))
+        window.parent.postMessage([placeId, address, lat, lng, name], "*");
       });
 
       // in input mode, listen to what place is selected in the search box
@@ -167,12 +168,13 @@ console.log('posting location data to wix of ' + JSON.stringify([placeId, addres
         infoWindow.open(map, marker);
 
         // post the place to wix
+        var name = place.name;
         var placeId = place.place_id;
         var address = place.formatted_address;
         var lat = place.geometry.location.lat();
         var lng = place.geometry.location.lng();
-console.log('posting location data to wix of ' + JSON.stringify([placeId, address, lat, lng]))
-        window.parent.postMessage([placeId, address, lat, lng], "*");
+console.log('posting location data to wix of ' + JSON.stringify([placeId, address, lat, lng, name]))
+        window.parent.postMessage([placeId, address, lat, lng, name], "*");
       });
     }
 
