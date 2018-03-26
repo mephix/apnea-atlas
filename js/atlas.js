@@ -208,7 +208,7 @@ function initializeMap({callbackMessage}) {
     center: DEFAULT_CENTER,
     gestureHandling: 'cooperative',
     zoomControl: true,
-    mapTypeControl: false, //true,
+    mapTypeControl: true, //false, //
     fullscreenControl: true,
     scaleControl: false,
     streetViewControl: false,
