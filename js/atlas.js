@@ -38,6 +38,7 @@ window.addEventListener('message',
        *	markers
        */
       data = JSON.parse(event.data);
+  console.log(data)
 
       // data.initialLoad is a debugging option
       if (initialLoad || data.initialLoad) {
@@ -131,8 +132,15 @@ function addMarkers() {
       // when it is dragged, recenter the map but dont zoom (let user do manually)
       marker.setDraggable(true);
       google.maps.event.addListener(marker, 'dragend', function(e) {
-        window.parent.postMessage([e.latLng.lat(),e.latLng.lng()], "*");
         map.setCenter(marker.position);
+
+        // post the location to wix
+        // this is just coordinates so there is no placeId or address
+        var placeId = null;
+        var address = null;
+        var lat = e.latLng.lat();
+        var lng = e.latLng.lng();
+        window.parent.postMessage([placeId, address, lat, lng], "*");
       });
 
       // in input mode, listen to what place is selected in the search box
@@ -162,9 +170,7 @@ function addMarkers() {
         var address = place.formatted_address;
         var lat = place.geometry.location.lat();
         var lng = place.geometry.location.lng();
-        console.log('posting info from html to $w')
-        console.log([placeId, address, lat,lng])
-        window.parent.postMessage([placeId, address, lat,lng], "*");
+        window.parent.postMessage([placeId, address, lat, lng], "*");
       });
     }
 
