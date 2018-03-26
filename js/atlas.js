@@ -31,19 +31,25 @@ window.addEventListener('message',
       /* data contains:
        * 	googleKey
        *	navionicsKey
-       * 	mapType
+       * 	atlasType
        *	center
        *	markers
        */
       data = JSON.parse(event.data);
 
       if (initialLoad) {
+        // set the parameters for the atlas based on its type
+        if (!data.atlasType) throw('wix must supply an atlas type');
+        atlasParams = setAtlasParams({atlasType: data.atlasType});
         loadAtlasScriptsEtc();
         initialLoad = false;
       }
 
       // [callback]
-      centerAndAddMarkers({callbackMessage: 'data ready'});
+      // unless its a display map but no markers have been received yet
+      if (atlasParams.atlasType==='input' || data.center || data.markers) {
+        centerAndAddMarkers({callbackMessage: 'data ready'});
+      }
 	}
   }
 )
@@ -69,10 +75,10 @@ function centerAndAddMarkers ({callbackMessage}) {
   // create an initial marker that can be dragged or moved by searching
   // for a place
   if (atlasParams.mode === 'input') {
-    data.markers[0] = {
+    data.markers = [{
       lat: map.center.lat(),
       lng: map.center.lng(),
-    }
+    }]
   }
 
   // add new markers
@@ -240,9 +246,6 @@ function addNavionicsToMap({callbackMessage}) {
 }
 
 function loadAtlasScriptsEtc () {
-  // set the parameters for the atlas based on its type
-  if (!data.atlasType) throw('wix must supply an atlas type');
-  atlasParams = setAtlasParams({atlasType: data.atlasType});
 
   // load map from Google
   if (!data.googleKey) throw('wix must supply a google Api Key');
@@ -257,7 +260,6 @@ function loadAtlasScriptsEtc () {
   // data-root="https://webapiv2.navionics.com/dist/webapi/images" 
   if (!data.navionicsKey) throw('wix must supply a Navionics Key');
   if (atlasParams.navionics) {
-    console.log('calling navionics script')
     loadAtlasScript({
       src: 'https://webapiv2.navionics.com/dist/webapi/webapi.min.no-dep.js',
       callback: ()=>{addNavionicsToMap({callbackMessage: 'navionics ready'});},
