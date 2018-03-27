@@ -80,12 +80,17 @@ function centerAndAddMarkers ({callbackMessage}) {
 
   // if this is an input map (eg +Add page of the site), 
   // create an initial marker that can be dragged or moved by searching for a place
+  // create it based on the data supplied for the center, if it exists
   if (atlasParams.mode === 'input') {
-    data.markers = [{
-      name: 'drag me!',
-      lat: map.center.lat(),
-      lng: map.center.lng(),
-    }]
+    if (data.center.name) {
+      data.markers = [data.center];
+    } else {
+      data.markers = [{
+        name: 'drag me!',
+        lat: map.center.lat(),
+        lng: map.center.lng(),
+      }]
+    }
   }
 
   // add new markers
