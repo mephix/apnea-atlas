@@ -51,12 +51,11 @@ window.addEventListener('message',
 
       // [callback]
       // if its an input map or markers or a center have been sent
+      // there is no callback if a map is just being initialized (with googleKey, etc)
       if (atlasParams.mode==='input' || data.center || data.markers) {
         centerAndAddMarkers({callbackMessage: 'data ready'});
       }
-	} else {
-	  throw('atlas.js: window.addEventListener: event contains no data');
-	}
+	} else throw('atlas.js: window.addEventListener: event contains no data');
   }
 )
 
@@ -72,9 +71,11 @@ function centerAndAddMarkers ({callbackMessage}) {
   oms.removeAllMarkers();
 
   // set the map center if it has been supplied
+  // any input marker will be created at this center, and then the map will be zoomed
+  // and centered on the input marker
   if (data.center) {
     map.setCenter({lat: data.center.lat, lng: data.center.lng});
-    console.log({lat: data.center.lat, lng: data.center.lng});
+    console.log('center is now (' + data.center.lat + ',' + data.center.lng + ')');
   }
 
   // if this is an input map (eg +Add page of the site), 
@@ -136,11 +137,11 @@ function addMarkers() {
 
         // post the location to wix
         // this is just coordinates so there is no placeId or address
-        var name = null;
         var placeId = null;
         var address = null;
         var lat = e.latLng.lat();
         var lng = e.latLng.lng();
+        var name = null;
 console.log('posting location data to wix of ' + JSON.stringify([placeId, address, lat, lng, name]))
         window.parent.postMessage([placeId, address, lat, lng, name], "*");
       });
