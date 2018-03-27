@@ -195,7 +195,16 @@ console.log('posting location data to wix of ' + JSON.stringify([placeId, addres
     // !! is there a cleaner way to do this? !!
     map.setCenter({'lat': data.markers[0].lat, 'lng': data.markers[0].lng});
   } else {
-    map.fitBounds(bounds);  
+    map.fitBounds(bounds);
+    /*
+    var listener = google.maps.event.addListener(map, "idle", function() { 
+      if (map.getZoom() < 2) map.setZoom(2); 
+      google.maps.event.removeListener(listener); 
+    });
+    */
+    google.maps.event.addListenerOnce(map,'zoom_changed',
+      ()=> {if (map.getZoom() < DEFAULT_ZOOM) map.setZoom(DEFAULT_ZOOM);}
+    );
   }
 
 }

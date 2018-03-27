@@ -15,7 +15,7 @@
     <script src='js/createInfoDisplay.js'></script>
     <script>
 
-        const ATLAS_TYPE = 'add place';
+        const ATLAS_TYPE = 'atlas';
           // 'show place','show divesite', 'atlas',
           // 'add divesite','add divesite parking','add place'
 
@@ -27,7 +27,7 @@
         var iframe = document.createElement('iframe');
         iframe.setAttribute('src', iframeSource);
         iframe.setAttribute('id', 'atlas_iframe');
-        iframe.style.width = 200 + 'px';
+        iframe.style.width = 300 + 'px';
         iframe.style.height = 200 + 'px';
         document.body.appendChild(iframe);
 		var atlasElement = document.getElementById('atlas_iframe').contentWindow;
