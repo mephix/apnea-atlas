@@ -2,7 +2,7 @@ console.log('started loading atlas.js script');
 
 // variables with global scope
 var data, atlasParams, map, oms, infoWindow, autocomplete
-const DEFAULT_ZOOM = 0;
+const DEFAULT_ZOOM = 1;
 const DEFAULT_CENTER = {lat: 0, lng: 24};
 
 // cms records whether callback messages have been received 
@@ -54,6 +54,8 @@ window.addEventListener('message',
       if (atlasParams.mode==='input' || data.center || data.markers) {
         centerAndAddMarkers({callbackMessage: 'data ready'});
       }
+	} else {
+	  throw('atlas.js: window.addEventListener: event contains no data');
 	}
   }
 )
@@ -76,8 +78,7 @@ function centerAndAddMarkers ({callbackMessage}) {
   }
 
   // if this is an input map (eg +Add page of the site), 
-  // create an initial marker that can be dragged or moved by searching
-  // for a place
+  // create an initial marker that can be dragged or moved by searching for a place
   if (atlasParams.mode === 'input') {
     data.markers = [{
       name: 'drag me!',
@@ -114,8 +115,7 @@ function addMarkers() {
               url: status == OverlappingMarkerSpiderfier.markerStatus.SPIDERFIABLE
                        ? data.markers[i].iconSpiderfiable
                        : data.markers[i].icon,
-      })});    
-    }
+    })})}
 
     // display info when clicked with 'spider_click'
     if (data.markers[i].info) {
@@ -150,6 +150,7 @@ console.log('posting location data to wix of ' + JSON.stringify([placeId, addres
         infoWindow.close();
         var place = autocomplete.getPlace();
         if (!place.geometry) {
+          console.warn('addMarkers: place has no geometry');
           return;
         }
 
@@ -192,7 +193,6 @@ console.log('posting location data to wix of ' + JSON.stringify([placeId, addres
     map.setZoom(atlasParams.zoom);
     // !! is there a cleaner way to do this? !!
     map.setCenter({'lat': data.markers[0].lat, 'lng': data.markers[0].lng});
-
   } else {
     map.fitBounds(bounds);  
   }
@@ -225,7 +225,6 @@ function initializeMap({callbackMessage}) {
   if (atlasParams.mode === 'input') {
     autocomplete = new google.maps.places.Autocomplete(input);
     autocomplete.bindTo('bounds', map);
-    // !! USUALLY TOP+LEFT !!
     map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
   } else {
     input.style.display = "none"; 
@@ -256,7 +255,7 @@ function addNavionicsToMap({callbackMessage}) {
   if (!(cms.addNavionicsToMap.navionics_ready && 
         cms.addNavionicsToMap.map_ready)) 
     return;
-  if (!data.navionicsKey) throw('wix must supply a Navionics key');
+  if (!data.navionicsKey) throw new Error('wix must supply a Navionics key');
 
   // add the Navionics depth overlay
   var divingDepthLayer = new JNC.Google.NavionicsOverlay({
@@ -272,7 +271,7 @@ function addNavionicsToMap({callbackMessage}) {
 function loadAtlasScriptsEtc () {
 
   // load map from Google
-  if (!data.googleKey) throw('wix must supply a google Api Key');
+  if (!data.googleKey) throw new Error('wix must supply a google Api Key');
   //console.log(data.googleKey)
   loadAtlasScript({
     src: 'https://maps.googleapis.com/maps/api/js?libraries=places&key=' + data.googleKey,
@@ -332,7 +331,7 @@ function setAtlasParams({atlasType}) {
     case 'show divesite':
       atlasParams.mode = 'display';
       atlasParams.maptype = 'satellite';
-      atlasParams.zoom = 14;
+      //atlasParams.zoom = 14;
       atlasParams.navionics = true;
       break;
 
