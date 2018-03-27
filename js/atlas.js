@@ -137,11 +137,11 @@ function addMarkers() {
 
         // post the location to wix
         // this is just coordinates so there is no placeId or address
-        var placeId = null;
-        var address = null;
+        var placeId = 'NA'; // null;
+        var address = 'NA'; // null;
         var lat = e.latLng.lat();
         var lng = e.latLng.lng();
-        var name = null;
+        var name = 'NA'; // null;
 console.log('posting location data to wix of ' + JSON.stringify([placeId, address, lat, lng, name]))
         window.parent.postMessage([placeId, address, lat, lng, name], "*");
       });
