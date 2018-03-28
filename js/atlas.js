@@ -38,7 +38,7 @@ window.addEventListener('message',
        *	markers
        */
       data = JSON.parse(event.data);
-  console.log(data)
+  console.log('atlas.js received event.data of ' + JSON.stringify(data))
 
       // data.initialLoad is a debugging option
       if (initialLoad || data.initialLoad) {
