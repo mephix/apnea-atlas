@@ -82,7 +82,7 @@ function centerAndAddMarkers ({callbackMessage}) {
   // create an initial marker that can be dragged or moved by searching for a place
   // create it based on the data supplied for the center, if it exists
   if (atlasParams.mode === 'input') {
-    if (data.center.name) {
+    if (data.center && data.center.name) {
       data.markers = [data.center];
     } else {
       data.markers = [{
