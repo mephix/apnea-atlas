@@ -1,24 +1,24 @@
 console.log('started loading atlas.js script');
 
 // variables with global scope
-var data, atlasParams, map, oms, infoWindow, autocomplete
+var data, atlasParams, map, oms, infoWindow, autocomplete;
 const DEFAULT_ZOOM = 1;
 const DEFAULT_CENTER = {lat: 0, lng: 24};
 
 // cms records whether callback messages have been received 
-var cms = {}
+var cms = {};
 cms.initializeMap = {
   google_ready: false,
-  oms_ready:    false,  
-}
+  oms_ready:    false,
+};
 cms.addNavionicsToMap = {
   navionics_ready: false,
   map_ready:  false,
-}
+};
 cms.centerAndAddMarkers = {
   data_ready: false,
   map_ready:  false,
-}
+};
 
 function ready(){
 // let wix know when the map has loaded
@@ -51,7 +51,8 @@ window.addEventListener('message',
 
       // [callback]
       // if its an input map or markers or a center have been sent
-      // there is no callback if a map is just being initialized (with googleKey, etc)
+      // there is no callback if a map is just being initialized (with
+      // googleKey, etc)
       if (atlasParams.mode==='input' || data.center || data.markers) {
         centerAndAddMarkers({callbackMessage: 'data ready'});
       }
@@ -60,27 +61,27 @@ window.addEventListener('message',
 )
 
 function centerAndAddMarkers ({callbackMessage}) {
-  // check prerequisites
+  // wait for callbacks
   if (callbackMessage==='data ready') cms.centerAndAddMarkers.data_ready = true;
   if (callbackMessage==='map ready')  cms.centerAndAddMarkers.map_ready  = true;
-  if (!(cms.centerAndAddMarkers.data_ready && 
-        cms.centerAndAddMarkers.map_ready)) 
+  if (!(cms.centerAndAddMarkers.data_ready &&
+        cms.centerAndAddMarkers.map_ready))
     return;
 
   // remove any old markers
   oms.removeAllMarkers();
 
   // set the map center if it has been supplied
-  // any input marker will be created at this center, and then the map will be zoomed
-  // and centered on the input marker
+  // any input marker will be created at this center, and then the map will be
+  // zoomed and centered on the input marker
   if (data.center) {
     map.setCenter({lat: data.center.lat, lng: data.center.lng});
     console.log('center is now (' + data.center.lat + ',' + data.center.lng + ')');
   }
 
-  // if this is an input map (eg +Add page of the site), 
-  // create an initial marker that can be dragged or moved by searching for a place
-  // create it based on the data supplied for the center, if it exists
+  // if this is an input map (eg +Add page of the site), create an initial
+  // marker that can be dragged or moved by searching for a place. If a center
+  // is supplied, put the marker at this center.
   if (atlasParams.mode === 'input') {
     if (data.center && data.center.name) {
       data.markers = [data.center];
@@ -132,10 +133,10 @@ function addMarkers() {
           }
       );
     }
-    
+
     if (atlasParams.mode === 'input') {
-      // in input mode, listen to where the marker is dragged
-      // when it is dragged, recenter the map but dont zoom (let user do manually)
+      // in input mode, listen to where the marker is dragged. When it is
+      // dragged, recenter the map but dont zoom (let user do manually)
       marker.setDraggable(true);
       google.maps.event.addListener(marker, 'dragend', function(e) {
         map.setCenter(marker.position);
@@ -147,7 +148,7 @@ function addMarkers() {
         var lat = e.latLng.lat();
         var lng = e.latLng.lng();
         var name = 'NA'; // null;
-console.log('posting location data to wix of ' + JSON.stringify([placeId, address, lat, lng, name]))
+//console.log('posting location data to wix of ' + JSON.stringify([placeId, address, lat, lng, name]))
         window.parent.postMessage([placeId, address, lat, lng, name], "*");
       });
 
@@ -180,7 +181,7 @@ console.log('posting location data to wix of ' + JSON.stringify([placeId, addres
         var address = place.formatted_address;
         var lat = place.geometry.location.lat();
         var lng = place.geometry.location.lng();
-console.log('posting location data to wix of ' + JSON.stringify([placeId, address, lat, lng, name]))
+//console.log('posting location data to wix of ' + JSON.stringify([placeId, address, lat, lng, name]))
         window.parent.postMessage([placeId, address, lat, lng, name], "*");
       });
     }
@@ -192,26 +193,19 @@ console.log('posting location data to wix of ' + JSON.stringify([placeId, addres
     oms.addMarker(marker);
   }
 
-  // fit the map to the markers that have been displayed
-  // remember fitBounds happens asynchronously so setting zoom afterwards doesnt work
-  // remember atlasParams.zoom can exist and be 0
+  // fit the map to the markers that have been displayed. Remember fitBounds
+  // happens asynchronously so setting zoom afterwards doesnt work.
+  // Remember atlasParams.zoom can exist and be 0
   if (atlasParams.zoom || atlasParams.zoom===0) {
     map.setZoom(atlasParams.zoom);
     // !! is there a cleaner way to do this? !!
     map.setCenter({'lat': data.markers[0].lat, 'lng': data.markers[0].lng});
   } else {
     map.fitBounds(bounds);
-    /*
-    var listener = google.maps.event.addListener(map, "idle", function() { 
-      if (map.getZoom() < 2) map.setZoom(2); 
-      google.maps.event.removeListener(listener); 
-    });
-    */
     google.maps.event.addListenerOnce(map,'zoom_changed',
       ()=> {if (map.getZoom() < DEFAULT_ZOOM) map.setZoom(DEFAULT_ZOOM);}
     );
   }
-
 }
 
 function initializeMap({callbackMessage}) {
@@ -242,7 +236,7 @@ function initializeMap({callbackMessage}) {
     autocomplete.bindTo('bounds', map);
     map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
   } else {
-    input.style.display = "none"; 
+    input.style.display = "none";
   }
 
   // initialize a single infoWindow
@@ -265,10 +259,10 @@ function initializeMap({callbackMessage}) {
 
 function addNavionicsToMap({callbackMessage}) {
   // check prerequisites
-  if (callbackMessage==='navionics ready')  cms.addNavionicsToMap.navionics_ready = true;
-  if (callbackMessage==='map ready')        cms.addNavionicsToMap.map_ready  = true;
-  if (!(cms.addNavionicsToMap.navionics_ready && 
-        cms.addNavionicsToMap.map_ready)) 
+  if (callbackMessage==='navionics ready') cms.addNavionicsToMap.navionics_ready = true;
+  if (callbackMessage==='map ready') cms.addNavionicsToMap.map_ready = true;
+  if (!(cms.addNavionicsToMap.navionics_ready &&
+        cms.addNavionicsToMap.map_ready))
     return;
   if (!data.navionicsKey) throw new Error('wix must supply a Navionics key');
 
@@ -284,18 +278,17 @@ function addNavionicsToMap({callbackMessage}) {
 }
 
 function loadAtlasScriptsEtc () {
-
   // load map from Google
   if (!data.googleKey) throw new Error('wix must supply a google Api Key');
-  //console.log(data.googleKey)
   loadAtlasScript({
-    src: 'https://maps.googleapis.com/maps/api/js?libraries=places&key=' + data.googleKey,
+    src: 'https://maps.googleapis.com/maps/api/js?libraries=places&key=' +
+        data.googleKey,
     callback: ()=>{initializeMap({callbackMessage: 'google ready'});},
   });
 
   // load depth layer from Navionics	
   // !! HAVENT ADDED IMAGES TO DATAROOT OF BODY
-  // data-root="https://webapiv2.navionics.com/dist/webapi/images" 
+  // data-root="https://webapiv2.navionics.com/dist/webapi/images"
   if (!data.navionicsKey) throw('wix must supply a Navionics Key');
   if (atlasParams.navionics) {
     loadAtlasScript({
@@ -334,7 +327,6 @@ function loadAtlasStylesheet({src}) {
 
 function setAtlasParams({atlasType}) {
   atlasParams = {};
-
   switch (atlasType) {
     case 'atlas':
       atlasParams.mode = 'display';
@@ -346,7 +338,6 @@ function setAtlasParams({atlasType}) {
     case 'show divesite':
       atlasParams.mode = 'display';
       atlasParams.maptype = 'satellite';
-      //atlasParams.zoom = 14;
       atlasParams.navionics = true;
       break;
 

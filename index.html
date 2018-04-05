@@ -5,98 +5,92 @@
     <title>Atlas tester</title>
 </head>
 <body>
+  <h3>Atlas tester</h3>
+  <p>Atlas received message:</p>
+  <div id="results"></div>
+  <p>Send data to atlas: <button id="message_button">Send</button></p>
+  <br/>
+  <script src='js/createIcon.js'></script>
+  <script src='js/createInfoDisplay.js'></script>
+  <script>
 
-    <h3>Atlas tester</h3>
-    <p>Atlas received message:</p>
-    <div id="results"></div>
-    <p>Send data to atlas: <button id="message_button">Send</button></p>
-    <br/>
-    <script src='js/createIcon.js'></script>
-    <script src='js/createInfoDisplay.js'></script>
-    <script>
+    const ATLAS_TYPE = 'add divesite';
+      // 'show place','show divesite', 'atlas',
+      // 'add divesite','add divesite parking','add place'
 
-        const ATLAS_TYPE = 'add divesite';
-          // 'show place','show divesite', 'atlas',
-          // 'add divesite','add divesite parking','add place'
+    var messageButton = document.getElementById('message_button');
+    var results = document.getElementById('results');
 
-        var messageButton = document.getElementById('message_button');
-		var results = document.getElementById('results');
+    // create the atlas iframe
+    var iframeSource = 'atlas.html';
+    var iframe = document.createElement('iframe');
+    iframe.setAttribute('src', iframeSource);
+    iframe.setAttribute('id', 'atlas_iframe');
+    iframe.style.width = 300 + 'px';
+    iframe.style.height = 200 + 'px';
+    document.body.appendChild(iframe);
+    var atlasElement = document.getElementById('atlas_iframe').contentWindow;
 
-        // create the atlas iframe
-        var iframeSource = 'atlas.html';
-        var iframe = document.createElement('iframe');
-        iframe.setAttribute('src', iframeSource);
-        iframe.setAttribute('id', 'atlas_iframe');
-        iframe.style.width = 300 + 'px';
-        iframe.style.height = 200 + 'px';
-        document.body.appendChild(iframe);
-		var atlasElement = document.getElementById('atlas_iframe').contentWindow;
-        
-        // create the data
-        var mapData = {
-          googleKey: 'AIzaSyCRLnmaReDL6IFS7YRrfGmHjKvYtZw60Fg',
-          navionicsKey: 'Navionics_webapi_03362',
-          atlasType: ATLAS_TYPE,
-        };
+    // when the atlas is ready, send it the initialization data
+    // + receive messages from the atlas
+    var mapData = {
+      googleKey: 'AIzaSyCRLnmaReDL6IFS7YRrfGmHjKvYtZw60Fg',
+      navionicsKey: 'Navionics_webapi_03362',
+      atlasType: ATLAS_TYPE,
+    };
+    window.addEventListener('message',
+      (e) => {
+        results.innerHTML = JSON.stringify(e.data);
+        if (e.data.type==='ready') {
+          atlasElement.postMessage(JSON.stringify(mapData), '*');
+        }
+      });
 
-        // when the atlas is ready, send it the initialization data
-		// + receive messages from the atlas
-        window.addEventListener('message',
-          (e) => {
-            results.innerHTML = JSON.stringify(e.data)
-            if (e.data.type==='ready') {
-              atlasElement.postMessage(JSON.stringify(mapData), '*');
-            }
-          });
-        
-        // simulate sending data to the atlas
-		messageButton.addEventListener('click',
-          function (e) {
-            updateMapData({atlasType: mapData.atlasType});
-            //mapData.initialLoad = true;
-            atlasElement.postMessage(JSON.stringify(mapData), '*');
-          }
-		)
+    // simulate sending data to the atlas
+    messageButton.addEventListener('click',
+      function (e) {
+        updateMapData({atlasType: mapData.atlasType});
+        //mapData.initialLoad = true;
+        atlasElement.postMessage(JSON.stringify(mapData), '*');
+      }
+    )
 
-		function updateMapData({atlasType}) {
+    function updateMapData({atlasType}) {
+      // randomness options
+      var names = ['my muff','cenote','hello','happy place','ibiza'];
+      var types = ['site','parking','pool','school','trip','event'];
+      var compTypes = ['depth competition','pool competition',
+                       'mixed competition','judge course','workshop/camp'];
+      var lat = (Math.random()-0.5)*120;
+      var lng = (Math.random()-0.5)*360;
+      var name = names[Math.floor(Math.random()*names.length)];
+      var type = types[Math.floor(Math.random()*types.length)];
+      let cr = Math.floor(Math.random()*compTypes.length);
+      var compType = (type==='event') ? compTypes[cr] : '';
 
-          // randomness options
-          var names = ['my muff','cenote','hello','happy place','ibiza'];
-          var types = ['site','parking','pool','school','trip','event'];
-          var compTypes = ['depth competition','pool competition',
-                           'mixed competition','judge course','workshop/camp'];
-                                       
-          var lat = (Math.random()-0.5)*120;
-          var lng = (Math.random()-0.5)*360;
-          var name = names[Math.floor(Math.random()*names.length)];
-          var type = types[Math.floor(Math.random()*types.length)];
-          let cr = Math.floor(Math.random()*compTypes.length);
-          var compType = (type==='event') ? compTypes[cr] : '';
+      // need name, lat, lng, icon, info
+      randomMarker = {name,lat,lng,type,compType};
+      [randomMarker.icon,randomMarker.iconSpiderfiable] =
+        createIcon(randomMarker);
+      randomMarker.info = createInfoDisplay(randomMarker);
 
-          // need name, lat, lng, icon, info
-          randomMarker = {name,lat,lng,type,compType};
-          [randomMarker.icon,randomMarker.iconSpiderfiable] = 
-            createIcon(randomMarker);
-          randomMarker.info = createInfoDisplay(randomMarker);
-
-          // test the different types of atlas
-          if (!mapData.markers) mapData.markers = [];
-          switch (atlasType) {
-            case 'atlas':
-            case 'show divesite':
-              mapData.markers.push(randomMarker);
-              break;
-            case 'add divesite parking':
-              mapData.center = randomMarker;
-              break;
-            case 'add divesite':
-            case 'add place':
-              mapData.center = randomMarker;
-            default:
-              mapData.markers = [randomMarker];
-          }
-		}
-
-    </script>
+      // test the different types of atlas
+      if (!mapData.markers) mapData.markers = [];
+      switch (atlasType) {
+        case 'atlas':
+        case 'show divesite':
+          mapData.markers.push(randomMarker);
+          break;
+        case 'add divesite parking':
+          mapData.center = randomMarker;
+          break;
+        case 'add divesite':
+        case 'add place':
+          mapData.center = randomMarker;
+        default:
+          mapData.markers = [randomMarker];
+      }
+    }
+  </script>
 </body>
 </html>
