@@ -329,6 +329,8 @@ function setAtlasParams({atlasType}) {
   atlasParams = {};
   switch (atlasType) {
     case 'atlas':
+    // we want to see a satellite map with no depth or search box; fit to the
+    // markers that are supplied (but with no less than the default zoom)
       atlasParams.mode = 'display';
       atlasParams.maptype = 'satellite';
       atlasParams.center = DEFAULT_CENTER;
@@ -336,12 +338,16 @@ function setAtlasParams({atlasType}) {
       break;
 
     case 'show divesite':
+    // we want to see a satellite map with depth but no search box; fit to the
+    // marker which is supplied (possibly at high zoom) 
       atlasParams.mode = 'display';
       atlasParams.maptype = 'satellite';
       atlasParams.navionics = true;
       break;
 
     case 'show place':
+    // we want to see a roadmap with no search box; centered on the place at
+    // fixed zoom
       atlasParams.mode = 'display';
       atlasParams.maptype = 'roadmap';
       atlasParams.zoom = 14;
@@ -349,6 +355,8 @@ function setAtlasParams({atlasType}) {
       break;
 
     case 'add place':
+    // we want to see a roadmap with searchbox; zoomed out to the whole world
+    // even after a center is supplied via the search box
       atlasParams.mode = 'input';
       atlasParams.maptype = 'roadmap';
       atlasParams.zoom = DEFAULT_ZOOM;
@@ -357,6 +365,8 @@ function setAtlasParams({atlasType}) {
       break;
 
     case 'add divesite':
+    // we want to see a satellite map with depth and searchbox; zoomed out to
+    // the whole world even after a center is supplied via the search box
       atlasParams.mode = 'input';
       atlasParams.maptype = 'satellite';
       atlasParams.zoom = DEFAULT_ZOOM;
@@ -365,6 +375,8 @@ function setAtlasParams({atlasType}) {
       break;
 
     case 'add divesite parking':
+    // we want to see a roadmap with search box; centered on the divesite at
+    // fixed zoom
       atlasParams.mode = 'input';
       atlasParams.maptype = 'roadmap';
       atlasParams.zoom = 14;

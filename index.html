@@ -14,7 +14,7 @@
   <script src='js/createInfoDisplay.js'></script>
   <script>
 
-    const ATLAS_TYPE = 'add divesite';
+    const ATLAS_TYPE = 'show divesite';
       // 'show place','show divesite', 'atlas',
       // 'add divesite','add divesite parking','add place'
 
@@ -78,7 +78,6 @@
       if (!mapData.markers) mapData.markers = [];
       switch (atlasType) {
         case 'atlas':
-        case 'show divesite':
           mapData.markers.push(randomMarker);
           break;
         case 'add divesite parking':
@@ -87,6 +86,9 @@
         case 'add divesite':
         case 'add place':
           mapData.center = randomMarker;
+          break;
+        case 'show divesite':
+        case 'show place':
         default:
           mapData.markers = [randomMarker];
       }
