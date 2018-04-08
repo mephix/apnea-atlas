@@ -50,9 +50,9 @@ window.addEventListener('message',
       }
 
       // [callback]
-      // if its an input map or markers or a center have been sent
-      // there is no callback if a map is just being initialized (with
-      // googleKey, etc)
+      // There is no callback to centerAndAddMarkers if a map is just being
+      // initialized (with googleKey, etc). There is only a callback if it is
+      // an input map, or markers or a center have been sent.
       if (atlasParams.mode==='input' || data.center || data.markers) {
         centerAndAddMarkers({callbackMessage: 'data ready'});
       }
@@ -116,13 +116,16 @@ function addMarkers() {
     // set icon and add dot when spiderfiable but not spiderfied
     if (data.markers[i].icon) {
       marker.setIcon(data.markers[i].icon);
-      google.maps.event.addListener(marker, 'spider_format', 
+      google.maps.event.addListener(marker, 'spider_format',
         function(status) {
-          marker.setIcon({
-              url: status == OverlappingMarkerSpiderfier.markerStatus.SPIDERFIABLE
-                       ? data.markers[i].iconSpiderfiable
-                       : data.markers[i].icon,
-    })})}
+          let iconStatus =
+              status == OverlappingMarkerSpiderfier.markerStatus.SPIDERFIABLE
+              ? data.markers[i].iconSpiderfiable
+              : data.markers[i].icon;
+          marker.setIcon({url: iconStatus});
+        }
+      )
+    }
 
     // display info when clicked with 'spider_click'
     if (data.markers[i].info) {
@@ -193,9 +196,9 @@ function addMarkers() {
     oms.addMarker(marker);
   }
 
-  // fit the map to the markers that have been displayed. Remember fitBounds
-  // happens asynchronously so setting zoom afterwards doesnt work.
-  // Remember atlasParams.zoom can exist and be 0
+  // Fit the map to the markers that have been displayed. Remember fitBounds
+  // happens asynchronously so setting zoom afterwards doesnt work. Remember
+  // atlasParams.zoom can exist and be 0.
   if (atlasParams.zoom || atlasParams.zoom===0) {
     map.setZoom(atlasParams.zoom);
     // !! is there a cleaner way to do this? !!
@@ -338,16 +341,17 @@ function setAtlasParams({atlasType}) {
       break;
 
     case 'show divesite':
-    // we want to see a satellite map with depth but no search box; fit to the
-    // marker which is supplied (possibly at high zoom) 
+    // we want to see a satellite map with depth but no search box; centered on
+    // the marker at fixed zoom.
       atlasParams.mode = 'display';
       atlasParams.maptype = 'satellite';
+      atlasParams.zoom = 17;
       atlasParams.navionics = true;
       break;
 
     case 'show place':
-    // we want to see a roadmap with no search box; centered on the place at
-    // fixed zoom
+    // we want to see a roadmap with no search box; centered on the marker at
+    // fixed zoom.
       atlasParams.mode = 'display';
       atlasParams.maptype = 'roadmap';
       atlasParams.zoom = 14;
