@@ -2,7 +2,7 @@ console.log('started loading atlas.js script');
 
 // variables with global scope
 var data, atlasParams, map, oms, infoWindow, autocomplete;
-const DEFAULT_ZOOM = 1;
+const DEFAULT_ZOOM = 2;
 const DEFAULT_CENTER = {lat: 0, lng: 24};
 
 // cms records whether callback messages have been received 
@@ -144,16 +144,15 @@ function addMarkers() {
       google.maps.event.addListener(marker, 'dragend', function(e) {
         map.setCenter(marker.position);
 
-        // post the location to wix
-        // this is just coordinates so there is no placeId or address
-        var placeId = 'NA'; // null;
-        var address = 'NA'; // null;
-        var lat = e.latLng.lat();
-        var lng = e.latLng.lng();
-        var name = 'NA'; // null;
-//console.log('posting location data to wix of ' + JSON.stringify([placeId, address, lat, lng, name]))
-        window.parent.postMessage([placeId, address, lat, lng, name], "*");
-      });
+      // post the location to wix
+      // this is just coordinates so there is no placeId or address
+      var placeId = 'NA'; // null;
+      var address = 'NA'; // null;
+      var lat = e.latLng.lat();
+      var lng = e.latLng.lng();
+      var name = 'NA'; // null;
+      window.parent.postMessage([placeId, address, lat, lng, name], "*");
+    });
 
       // in input mode, listen to what place is selected in the search box
       autocomplete.addListener('place_changed', function() {
