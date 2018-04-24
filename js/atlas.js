@@ -336,6 +336,7 @@ function setAtlasParams({atlasType}) {
       atlasParams.mode = 'display';
       atlasParams.maptype = 'satellite';
       atlasParams.center = DEFAULT_CENTER;
+      atlasParams.zoom = DEFAULT_ZOOM;
       atlasParams.navionics = false;
       break;
 
