@@ -1,15 +1,17 @@
-console.log('started loading atlas.js script');
+//console.log('started loading atlas.js script');
 
 // variables with global scope
-var data, atlasParams, map, oms, infoWindow, autocomplete;
+var data, atlasParams, map, oms, markerClusterer, infoWindow, autocomplete;
+const MAX_CLUSTER_ZOOM = 7;
 const DEFAULT_ZOOM = 2;
 const DEFAULT_CENTER = {lat: 0, lng: 24};
 
-// cms records whether callback messages have been received 
+// cms records whether callback messages have been received
 var cms = {};
 cms.initializeMap = {
   google_ready: false,
-  oms_ready:    false,
+  oms_ready: false,
+  mc_ready: false,
 };
 cms.addNavionicsToMap = {
   navionics_ready: false,
@@ -38,7 +40,7 @@ window.addEventListener('message',
        *	markers
        */
       data = JSON.parse(event.data);
-  console.log('atlas.js received event.data of ' + JSON.stringify(data))
+      // console.log('atlas.js received event.data of ' + JSON.stringify(data))
 
       // data.initialLoad is a debugging option
       if (initialLoad || data.initialLoad) {
@@ -76,7 +78,7 @@ function centerAndAddMarkers ({callbackMessage}) {
   // zoomed and centered on the input marker
   if (data.center) {
     map.setCenter({lat: data.center.lat, lng: data.center.lng});
-    console.log('center is now (' + data.center.lat + ',' + data.center.lng + ')');
+    //console.log('center is now (' + data.center.lat + ',' + data.center.lng + ')');
   }
 
   // if this is an input map (eg +Add page of the site), create an initial
@@ -101,6 +103,7 @@ function centerAndAddMarkers ({callbackMessage}) {
 function addMarkers() {
 // add all the markers to the map
   var bounds = new google.maps.LatLngBounds();
+  var markers = [];
 
   for (let i = 0; i < data.markers.length; i++) {
 
@@ -183,7 +186,6 @@ function addMarkers() {
         var address = place.formatted_address;
         var lat = place.geometry.location.lat();
         var lng = place.geometry.location.lng();
-//console.log('posting location data to wix of ' + JSON.stringify([placeId, address, lat, lng, name]))
         window.parent.postMessage([placeId, address, lat, lng, name], "*");
       });
     }
@@ -193,6 +195,7 @@ function addMarkers() {
 
     // add marker to markerSpiderifier and therefore the map
     oms.addMarker(marker);
+    markers.push(marker);
   }
 
   // Fit the map to the markers that have been displayed. Remember fitBounds
@@ -200,20 +203,89 @@ function addMarkers() {
   // atlasParams.zoom can exist and be 0.
   if (atlasParams.zoom || atlasParams.zoom===0) {
     map.setZoom(atlasParams.zoom);
-    // !! is there a cleaner way to do this? !!
-    map.setCenter({'lat': data.markers[0].lat, 'lng': data.markers[0].lng});
+    if (atlasParams.center) {
+      map.setCenter(atlasParams.center);
+    } else {
+      // !! is there a cleaner way to do this? !!
+      map.setCenter({'lat': data.markers[0].lat, 'lng': data.markers[0].lng});
+    }
   } else {
     map.fitBounds(bounds);
     google.maps.event.addListenerOnce(map,'zoom_changed',
       ()=> {if (map.getZoom() < DEFAULT_ZOOM) map.setZoom(DEFAULT_ZOOM);}
     );
   }
+
+  // enable clustering
+  let styles = [{
+    url: 'https://static.wixstatic.com/media/435cd1_6ec3eec59d6a4afba0a07714bbc2aad5~mv2.png?dn=m1.png',
+    height: 50,
+    width: 50,
+  }, {
+    url: 'https://static.wixstatic.com/media/435cd1_6480f0af48fb4e6fad3d264d7363292e~mv2.png?dn=m2.png',
+    height: 60,
+    width: 60,
+  }, {
+    url: 'https://static.wixstatic.com/media/435cd1_194e41386eeb41d08fe93fb64c8cc49c~mv2.png?dn=m3.png',
+    height: 70,
+    width: 70,
+  }, {
+    url: 'https://static.wixstatic.com/media/435cd1_1dae5eef795a46e0803a9fb3316fa839~mv2.png?dn=m4.png',
+    height: 80,
+    width: 80,
+  }, {
+    url: 'https://static.wixstatic.com/media/435cd1_a424d0e8bafe49d79f472e9ac812f409~mv2.png?dn=m5.png',
+    height: 90,
+    width: 90,
+  }];
+  if (markerClusterer) {
+    markerClusterer.clearMarkers();
+  }
+  markerClusterer = new MarkerClusterer(map, markers, {
+    maxZoom: MAX_CLUSTER_ZOOM,
+    gridSize: 60,
+    zoomOnClick: true,
+    styles: styles,
+  });
+
+  /*
+  if (data.clustererImagePath && data.clustererImagePath != '') {
+    imagePath = data.clustererImagePath;
+    var markerCluster = new MarkerClusterer(map, markers, {imagePath});
+    markerCluster.setMaxZoom(MAX_CLUSTER_ZOOM);
+  }
+  let styles = [{
+    url: 'https://static.wixstatic.com/media/435cd1_6ec3eec59d6a4afba0a07714bbc2aad5~mv2.png?dn=m1.png',
+    height: 35,
+    width: 35,
+    anchor: [16, 0],
+    textColor: '#ff00ff',
+    textSize: 10
+  }, {
+    url: 'https://static.wixstatic.com/media/435cd1_6480f0af48fb4e6fad3d264d7363292e~mv2.png?dn=m2.png',
+    height: 45,
+    width: 45,
+    anchor: [24, 0],
+    textColor: '#ff0000',
+    textSize: 11
+  }, {
+    url: 'https://static.wixstatic.com/media/435cd1_194e41386eeb41d08fe93fb64c8cc49c~mv2.png?dn=m3.png',
+    height: 55,
+    width: 55,
+    anchor: [32, 0],
+    textColor: '#ffffff',
+    textSize: 12
+  }];
+  */
 }
 
 function initializeMap({callbackMessage}) {
   if (callbackMessage==='google ready') cms.initializeMap.google_ready  = true;
   if (callbackMessage==='oms ready')    cms.initializeMap.oms_ready     = true;
-  if (!(cms.initializeMap.google_ready && cms.initializeMap.oms_ready)) return;
+  if (callbackMessage==='mc ready')     cms.initializeMap.mc_ready      = true;
+  if (!(cms.initializeMap.google_ready &&
+      cms.initializeMap.oms_ready &&
+      cms.initializeMap.mc_ready)) return;
 
   var mapOptions = {
     mapTypeId: atlasParams.maptype,
@@ -307,6 +379,15 @@ function loadAtlasScriptsEtc () {
     src: 'https://cdnjs.cloudflare.com/ajax/libs/OverlappingMarkerSpiderfier/1.0.3/oms.min.js',
     callback: ()=>{initializeMap({callbackMessage: 'oms ready'});},
   });
+
+  // load marker clusterer
+  //console.log('about to load marker clusterer')
+  loadAtlasScript({
+    src: 'https://cdn.rawgit.com/googlemaps/v3-utility-library/ba0db812/markerclusterer/src/markerclusterer.js',
+    callback: ()=>{initializeMap({callbackMessage: 'mc ready'});},
+  });
+  //console.log('finished loading marker clusterer')
+
 }
 
 function loadAtlasScript({src,callback,async=true,defer=true}) {

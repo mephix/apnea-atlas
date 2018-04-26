@@ -15,6 +15,7 @@
   <script>
 
     const ATLAS_TYPE = 'atlas';
+    const N_POINTS_AT_A_TIME = 100;
       // 'show place','show divesite', 'atlas',
       // 'add divesite','add divesite parking','add place'
 
@@ -49,7 +50,9 @@
     // simulate sending data to the atlas
     messageButton.addEventListener('click',
       function (e) {
-        updateMapData({atlasType: mapData.atlasType});
+        for (i=0; i<N_POINTS_AT_A_TIME; i++) {
+          updateMapData({atlasType: mapData.atlasType});
+        }
         //mapData.initialLoad = true;
         atlasElement.postMessage(JSON.stringify(mapData), '*');
       }
