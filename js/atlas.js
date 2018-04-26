@@ -3,7 +3,7 @@
 // variables with global scope
 var data, atlasParams, map, oms, markerClusterer, infoWindow, autocomplete;
 const MAX_CLUSTER_ZOOM = 7;
-const DEFAULT_ZOOM = 2;
+const DEFAULT_ZOOM = 1.6;
 const DEFAULT_CENTER = {lat: 0, lng: 24};
 
 // cms records whether callback messages have been received
