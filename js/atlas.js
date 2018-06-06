@@ -147,15 +147,23 @@ function addMarkers() {
       google.maps.event.addListener(marker, 'dragend', function(e) {
         map.setCenter(marker.position);
 
-      // post the location to wix
-      // this is just coordinates so there is no placeId or address
-      var placeId = 'NA'; // null;
-      var address = 'NA'; // null;
-      var lat = e.latLng.lat();
-      var lng = e.latLng.lng();
-      var name = 'NA'; // null;
-      window.parent.postMessage([placeId, address, lat, lng, name], "*");
-    });
+        // post the location to wix
+        // this is just coordinates so there is no placeId or address
+        var placeId = 'NA'; // null;
+        var address = 'NA'; // null;
+        var lat = e.latLng.lat();
+        var lng = e.latLng.lng();
+        var name = 'NA'; // null;
+        window.parent.postMessage([placeId, address, lat, lng, name], "*");
+      });
+
+      // in input mode, listen when the map is re-centered. Move the marker
+      // to the new center and post it to wix.
+      map.addListener('dragend', function() {
+        let c = map.getCenter();
+        marker.setPosition(c);
+        window.parent.postMessage(['NA', 'NA', c.lat(), c.lng(), 'NA'], "*");
+      });
 
       // in input mode, listen to what place is selected in the search box
       autocomplete.addListener('place_changed', function() {
