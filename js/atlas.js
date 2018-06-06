@@ -157,12 +157,15 @@ function addMarkers() {
         window.parent.postMessage([placeId, address, lat, lng, name], "*");
       });
 
-      // in input mode, listen when the map is re-centered. Move the marker
-      // to the new center and post it to wix.
+      // in input mode, listen when the map is dragged. If the map is
+      // dragged so far that it no longer contains the marker, assume the user
+      // wants the marker moved, and move it to the map's new center.
       map.addListener('dragend', function() {
-        let c = map.getCenter();
-        marker.setPosition(c);
-        window.parent.postMessage(['NA', 'NA', c.lat(), c.lng(), 'NA'], "*");
+        if (!map.getBounds().contains(marker.getPosition())) {
+          let c = map.getCenter();
+          marker.setPosition(c);
+          window.parent.postMessage(['NA', 'NA', c.lat(), c.lng(), 'NA'], "*");
+        }
       });
 
       // in input mode, listen to what place is selected in the search box
